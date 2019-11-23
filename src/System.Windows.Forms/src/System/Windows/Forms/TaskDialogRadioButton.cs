@@ -248,6 +248,8 @@ namespace System.Windows.Forms
             }
         }
 
+        internal IntPtr Handle { get; set; }
+
         internal int RadioButtonID => _radioButtonID;
 
         internal TaskDialogRadioButtonCollection? Collection
@@ -307,6 +309,7 @@ namespace System.Windows.Forms
         private protected override void UnbindCore()
         {
             _radioButtonID = 0;
+            Handle = IntPtr.Zero;
 
             base.UnbindCore();
         }

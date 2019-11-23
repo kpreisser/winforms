@@ -4,7 +4,10 @@
 
 #nullable enable
 
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using static Interop;
 
 namespace System.Windows.Forms
@@ -109,12 +112,12 @@ namespace System.Windows.Forms
             _customButtons = new TaskDialogCustomButtonCollection();
             _standardButtons = new TaskDialogStandardButtonCollection();
             _radioButtons = new TaskDialogRadioButtonCollection();
-            
+
             // Create empty (hidden) controls.
             _checkBox = new TaskDialogCheckBox();
             _expander = new TaskDialogExpander();
             _footer = new TaskDialogFooter();
-            _progressBar = new TaskDialogProgressBar(TaskDialogProgressBarState.None);            
+            _progressBar = new TaskDialogProgressBar(TaskDialogProgressBarState.None);
         }
 
         /// <summary>
@@ -892,6 +895,10 @@ namespace System.Windows.Forms
 
             _appliedInitialization = true;
 
+            // Determine and assign the window handles of the button controls
+            // after the dialog was shown or navigated.
+            AssignControlHandles();
+
             TaskDialogStandardButtonCollection standardButtons = _standardButtons;
             TaskDialogCustomButtonCollection customButtons = _customButtons;
             TaskDialogRadioButtonCollection radioButtons = _radioButtons;
@@ -940,6 +947,81 @@ namespace System.Windows.Forms
         /// </summary>
         /// <param name="e">An <see cref="TaskDialogHyperlinkClickedEventArgs"/> that contains the event data.</param>
         internal protected void OnHyperlinkClicked(TaskDialogHyperlinkClickedEventArgs e) => HyperlinkClicked?.Invoke(this, e);
+
+        private unsafe void AssignControlHandles()
+        {
+            // Get all button handles by enumerating the child window handles and
+            // then checking if their class equals "Button".
+            const string buttonClassName = "Button";
+            var buttonHandles = new List<IntPtr>();
+
+            // Add one extra char for the \0 char and another one to check that the
+            // string is actually not longer than "Button".
+            var classNameBuffer = new StringBuilder(buttonClassName.Length + 2);
+
+            UnsafeNativeMethods.EnumChildWindows(
+                new HandleRef(null, BoundTaskDialog!.Handle),
+                (hWndChild, lParam) =>
+                {
+                    int result = UnsafeNativeMethods.GetClassName(
+                        new HandleRef(null, hWndChild),
+                        classNameBuffer,
+                        classNameBuffer.Capacity);
+
+                    if (result > 0 && result < classNameBuffer.Capacity - 1)
+                    {
+                        if (classNameBuffer.Equals(buttonClassName))
+                        {
+                            buttonHandles.Add(hWndChild);
+                        }
+                    }
+
+                    return true;
+                },
+                default);
+
+            // Assign the button handles for custom and radio buttons.
+            if (buttonHandles.Count >=
+                    StandardButtons.Count + CustomButtons.Count + RadioButtons.Count)
+            {
+                bool hasCommandLinks =
+                    CustomButtonStyle == TaskDialogCustomButtonStyle.CommandLinks ||
+                    CustomButtonStyle == TaskDialogCustomButtonStyle.CommandLinksNoIcon;
+
+                TaskDialogStandardButtonCollection standardButtons = StandardButtons;
+                TaskDialogCustomButtonCollection customButtons = CustomButtons;
+                TaskDialogRadioButtonCollection radioButtons = RadioButtons;
+
+                int standardButtonOffset = radioButtons.Count + customButtons.Count;
+                int customButtonOffset = hasCommandLinks ? 0 : radioButtons.Count;
+                int radioButtonOffset = hasCommandLinks ? customButtons.Count : 0;
+
+                // We need to iterate the standard buttons in the order in which they appear in the
+                // task dialog (which is fixed), as the collection can contain them in an arbitrary
+                // order.
+                IEnumerable<TaskDialogResult> taskDialogResults = TaskDialogStandardButtonCollection
+                    .GetResultsForButtonFlags((TaskDialogButtons)(-1));
+
+                int standardButtonIndex = 0;
+                foreach (TaskDialogResult buttonKey in taskDialogResults)
+                {
+                    if (standardButtons.TryGetValue(buttonKey, out TaskDialogStandardButton? button)) {
+                        button.Handle = buttonHandles[standardButtonOffset + standardButtonIndex];
+                        standardButtonIndex++;
+                    }
+                }
+
+                for (int i = 0; i < customButtons.Count; i++)
+                {
+                    customButtons[i].Handle = buttonHandles[customButtonOffset + i];
+                }
+
+                for (int i = 0; i < radioButtons.Count; i++)
+                {
+                    radioButtons[i].Handle = buttonHandles[radioButtonOffset + i];
+                }
+            }
+        }
 
         private bool GetFlag(ComCtl32.TDF flag) => (_flags & flag) == flag;
 

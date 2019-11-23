@@ -160,6 +160,8 @@ namespace System.Windows.Forms
             }
         }
 
+        internal IntPtr Handle { get; set; }
+
         internal abstract int ButtonID { get; }
 
         // Note: Instead of declaring an abstract Collection getter, we implement
@@ -186,6 +188,13 @@ namespace System.Windows.Forms
             OnClick(EventArgs.Empty);
 
             return ShouldCloseDialog;
+        }
+
+        private protected override void UnbindCore()
+        {
+            Handle = IntPtr.Zero;
+            
+            base.UnbindCore();
         }
 
         private protected override void ApplyInitializationCore()
