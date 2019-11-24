@@ -101,6 +101,12 @@ namespace System.Windows.Forms
             set => base.Collection = value;
         }
 
+        private protected override bool IsShownAsCommandLink
+        {
+            get => BoundPage?.CustomButtonStyle == TaskDialogCustomButtonStyle.CommandLinks ||
+                BoundPage?.CustomButtonStyle == TaskDialogCustomButtonStyle.CommandLinksNoIcon;
+        }
+
         /// <summary>
         ///   Returns a string that represents the current <see cref="TaskDialogCustomButton"/> control.
         /// </summary>

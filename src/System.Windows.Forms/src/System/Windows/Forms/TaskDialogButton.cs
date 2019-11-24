@@ -5,6 +5,8 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using static Interop;
 
 namespace System.Windows.Forms
 {
@@ -116,6 +118,37 @@ namespace System.Windows.Forms
 
                 if (CanUpdate())
                 {
+                    // If we have a handle we update the control text to include (or remove) a space
+                    // char which improves the look of the shield icon. Note that the task dialog
+                    // calculates the width of a button based on its original control text, not based
+                    // on the one that we set. However, when the shield icon is shown, the button has
+                    // a sufficient width so that the space that we add doesn't cause any clipping.
+                    if (Handle != null && !IsShownAsCommandLink)
+                    {
+                        const char space = ' ';
+
+                        if (value && !_elevationRequired)
+                        {
+                            // Add a space to the control text.
+                            string text = User32.GetWindowText(Handle);
+                            text = space + text;
+
+                            User32.SetWindowTextW(Handle, text);
+                        }
+                        else if (!value && _elevationRequired)
+                        {
+                            // Remove the space that we previously added.
+                            string text = User32.GetWindowText(Handle);
+                            Debug.Assert(text.Length > 0 && text[0] == space);
+                            if (text.Length > 0 && text[0] == space)
+                            {
+                                text = text[1..];
+                            }
+
+                            User32.SetWindowTextW(Handle, text);
+                        }
+                    }
+
                     BoundPage!.BoundTaskDialog!.SetButtonElevationRequiredState(ButtonID, value);
                 }
 
@@ -172,6 +205,11 @@ namespace System.Windows.Forms
         // a new (internal) Collection property which has a more specific type.
         private protected IReadOnlyList<TaskDialogButton>? Collection { get; set; }
 
+        private protected virtual bool IsShownAsCommandLink
+        {
+            get => false;
+        }
+
         /// <summary>
         ///   Simulates a click on this button.
         /// </summary>
@@ -193,7 +231,7 @@ namespace System.Windows.Forms
         private protected override void UnbindCore()
         {
             Handle = IntPtr.Zero;
-            
+
             base.UnbindCore();
         }
 
@@ -206,7 +244,11 @@ namespace System.Windows.Forms
             }
             if (_elevationRequired)
             {
-                ElevationRequired = _elevationRequired;
+                // Reset the field before calling the property setter so that it can correctly
+                // determine that the current state of the button doesn't have an shield icon
+                // being shown.
+                _elevationRequired = false;
+                ElevationRequired = true;
             }
         }
 
