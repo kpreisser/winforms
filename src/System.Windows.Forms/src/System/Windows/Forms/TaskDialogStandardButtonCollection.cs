@@ -27,8 +27,7 @@ namespace System.Windows.Forms
         ///   <see cref="TaskDialogStandardButton"/> instance for each flag.
         /// </summary>
         /// <param name="buttons">The flags to convert.</param>
-        public static implicit operator TaskDialogStandardButtonCollection(
-                TaskDialogButtons buttons)
+        public static implicit operator TaskDialogStandardButtonCollection(TaskDialogButtons buttons)
         {
             var collection = new TaskDialogStandardButtonCollection();
 

@@ -9,12 +9,11 @@ using static Interop;
 namespace System.Windows.Forms
 {
     /// <summary>
-    ///   Represents a checkbox control of a task dialog.
+    ///   Represents a confirmation control of a task dialog.
     /// </summary>
-    public sealed class TaskDialogCheckBox : TaskDialogControl
+    public sealed class TaskDialogConfirmation : TaskDialogControl
     {
         private string? _text;
-
         private bool _checked;
 
         /// <summary>
@@ -24,22 +23,28 @@ namespace System.Windows.Forms
         public event EventHandler? CheckedChanged;
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="TaskDialogCheckBox"/> class.
+        ///   Initializes a new instance of the <see cref="TaskDialogConfirmation"/> class.
         /// </summary>
-        public TaskDialogCheckBox()
+        public TaskDialogConfirmation()
         {
         }
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref="TaskDialogCheckBox"/> class with
+        ///   Initializes a new instance of the <see cref="TaskDialogConfirmation"/> class with
         ///   the given text.
         /// </summary>
-        /// <param name="text"></param>
-        public TaskDialogCheckBox(string? text)
+        /// <param name="text">A text associated with this control.</param>
+        /// <param name="isChecked">A value indicating whether the <see cref="TaskDialogConfirmation"/> is in
+        ///   the checked state.</param>
+        public TaskDialogConfirmation(string? text, bool isChecked = false)
             : this()
         {
             _text = text;
+            Checked = isChecked;
         }
+
+        public static implicit operator TaskDialogConfirmation(string confirmationText)
+            => new TaskDialogConfirmation(confirmationText);
 
         /// <summary>
         ///   Gets or sets the text associated with this control.
@@ -66,11 +71,11 @@ namespace System.Windows.Forms
         }
 
         /// <summary>
-        ///   Gets or set a value indicating whether the <see cref="TaskDialogCheckBox"/> is in
+        ///   Gets or set a value indicating whether the <see cref="TaskDialogConfirmation"/> is in
         ///   the checked state.
         /// </summary>
         /// <value>
-        ///   <see langword="true"/> if the <see cref="TaskDialogCheckBox"/> is in the checked state;
+        ///   <see langword="true"/> if the <see cref="TaskDialogConfirmation"/> is in the checked state;
         ///   otherwise, <see langword="false"/>. The default value is <see langword="false"/>.
         /// </value>
         /// <remarks>
@@ -115,7 +120,7 @@ namespace System.Windows.Forms
         }
 
         /// <summary>
-        ///   Returns a string that represents the current <see cref="TaskDialogCheckBox"/> control.
+        ///   Returns a string that represents the current <see cref="TaskDialogConfirmation"/> control.
         /// </summary>
         /// <returns>The control text.</returns>
         public override string ToString() => _text ?? base.ToString() ?? string.Empty;

@@ -1342,7 +1342,7 @@ namespace System.Windows.Forms
                         break;
 
                     case ComCtl32.TDN.VERIFICATION_CLICKED:
-                        _boundPage.CheckBox!.HandleCheckBoxClicked(wParam != IntPtr.Zero);
+                        _boundPage.Confirmation!.HandleCheckBoxClicked(wParam != IntPtr.Zero);
                         break;
 
                     case ComCtl32.TDN.HELP:
@@ -1581,7 +1581,7 @@ namespace System.Windows.Forms
                     sizeToAllocate += SizeOfString(page.Caption);
                     sizeToAllocate += SizeOfString(page.MainInstruction);
                     sizeToAllocate += SizeOfString(page.Text);
-                    sizeToAllocate += SizeOfString(page.CheckBox?.Text);
+                    sizeToAllocate += SizeOfString(page.Confirmation?.Text);
                     sizeToAllocate += SizeOfString(page.Expander?.Text);
                     sizeToAllocate += SizeOfString(page.Expander?.ExpandedButtonText);
                     sizeToAllocate += SizeOfString(page.Expander?.CollapsedButtonText);
@@ -1652,7 +1652,7 @@ namespace System.Windows.Forms
                             pszWindowTitle = MarshalString(page.Caption),
                             pszMainInstruction = MarshalString(page.MainInstruction),
                             pszContent = MarshalString(page.Text),
-                            pszVerificationText = MarshalString(page.CheckBox?.Text),
+                            pszVerificationText = MarshalString(page.Confirmation?.Text),
                             pszExpandedInformation = MarshalString(page.Expander?.Text),
                             pszExpandedControlText = MarshalString(page.Expander?.ExpandedButtonText),
                             pszCollapsedControlText = MarshalString(page.Expander?.CollapsedButtonText),

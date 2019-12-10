@@ -47,7 +47,7 @@ namespace System.Windows.Forms
         private TaskDialogStandardButtonCollection _standardButtons;
         private TaskDialogCustomButtonCollection _customButtons;
         private TaskDialogRadioButtonCollection _radioButtons;
-        private TaskDialogCheckBox? _checkBox;
+        private TaskDialogConfirmation? _checkBox;
         private TaskDialogExpander? _expander;
         private TaskDialogFooter? _footer;
         private TaskDialogProgressBar? _progressBar;
@@ -111,7 +111,7 @@ namespace System.Windows.Forms
             _radioButtons = new TaskDialogRadioButtonCollection();
             
             // Create empty (hidden) controls.
-            _checkBox = new TaskDialogCheckBox();
+            _checkBox = new TaskDialogConfirmation();
             _expander = new TaskDialogExpander();
             _footer = new TaskDialogFooter();
             _progressBar = new TaskDialogProgressBar(TaskDialogProgressBarState.None);            
@@ -181,15 +181,15 @@ namespace System.Windows.Forms
         }
 
         /// <summary>
-        ///   Gets or sets the check box to be shown in this page.
+        ///   Gets or sets the confirmation check box to be shown in this page.
         /// </summary>
         /// <remarks>
         /// <para>
-        ///   The check box will only be shown if its <see cref="TaskDialogCheckBox.Text"/> property
-        ///   is not <see langword="null"/> or an empty string.
+        ///   The confirmation check box will only be shown if its <see cref="TaskDialogConfirmation.Text"/>
+        ///   property is not <see langword="null"/> or an empty string.
         /// </para>
         /// </remarks>
-        public TaskDialogCheckBox? CheckBox
+        public TaskDialogConfirmation? Confirmation
         {
             get => _checkBox;
 
