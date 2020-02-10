@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using static Interop;
 
@@ -502,14 +503,15 @@ namespace System.Windows.Forms
         /// <param name="buttons">A bitwise combination of the enumeration values that specify the buttons to be shown
         /// in the task dialog.</param>
         /// <param name="icon">The icon to display in the main area of the task dialog.</param>
-        /// <returns>One of the enumeration values that indicates the return value of the task dialog.</returns>
+        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
+        /// user to close the dialog.</returns>
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public static TaskDialogResult ShowDialog(
+        public static TaskDialogButton ShowDialog(
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             string? text,
             string? mainInstruction = null,
             string? caption = null,
-            TaskDialogButtons buttons = TaskDialogButtons.OK,
+            IEnumerable<TaskDialogButton>? buttons = null,
             TaskDialogIcon? icon = null) => ShowDialog(
                 IntPtr.Zero,
                 text,
@@ -529,15 +531,16 @@ namespace System.Windows.Forms
         /// <param name="buttons">A bitwise combination of the enumeration values that specify the buttons to be shown
         /// in the task dialog.</param>
         /// <param name="icon">The icon to display in the main area of the task dialog.</param>
-        /// <returns>One of the <see cref="TaskDialogResult"/> values.</returns>
+        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
+        /// user to close the dialog.</returns>
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public static TaskDialogResult ShowDialog(
+        public static TaskDialogButton ShowDialog(
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             IWin32Window owner,
             string? text,
             string? mainInstruction = null,
             string? caption = null,
-            TaskDialogButtons buttons = TaskDialogButtons.OK,
+            IEnumerable<TaskDialogButton>? buttons = null,
             TaskDialogIcon? icon = null) => ShowDialog(
                 owner?.Handle ?? throw new ArgumentNullException(nameof(owner)),
                 text,
@@ -560,27 +563,34 @@ namespace System.Windows.Forms
         /// <param name="buttons">A bitwise combination of enumeration values that specify the buttons to be shown
         /// in the task dialog.</param>
         /// <param name="icon">The icon to display in the main area of the task dialog.</param>
-        /// <returns>One of the <see cref="TaskDialogResult"/> values.</returns>
+        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
+        /// user to close the dialog.</returns>
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public static TaskDialogResult ShowDialog(
+        public static TaskDialogButton ShowDialog(
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
             IntPtr hwndOwner,
             string? text,
             string? mainInstruction = null,
             string? caption = null,
-            TaskDialogButtons buttons = TaskDialogButtons.OK,
+            IEnumerable<TaskDialogButton>? buttons = null,
             TaskDialogIcon? icon = null)
         {
-            var dialog = new TaskDialog(new TaskDialogPage()
+            var page = new TaskDialogPage()
             {
                 Text = text,
                 MainInstruction = mainInstruction,
                 Caption = caption,
                 Icon = icon,
-                StandardButtons = buttons
-            });
+            };
 
-            return ((TaskDialogStandardButton)dialog.ShowDialog(hwndOwner)).Result;
+            foreach (TaskDialogButton button in buttons ?? Array.Empty<TaskDialogButton>())
+            {
+                page.Buttons.Add(button);
+            }
+
+            var dialog = new TaskDialog(page);
+
+            return dialog.ShowDialog(hwndOwner);
         }
 
         private static void FreeConfig(IntPtr ptrToFree) => Marshal.FreeHGlobal(ptrToFree);
@@ -606,17 +616,17 @@ namespace System.Windows.Forms
             // "button" will be null or its "IsCreated" property returns false.
             // In that case the "Help" button would close the dialog, so we
             // return true.
-            return !(button is TaskDialogStandardButton standardButton &&
-                standardButton.IsCreated && standardButton.Result == TaskDialogResult.Help);
+            return !(button?.IsCreated == true && button.IsStandardButton &&
+                button.StandardButtonResult == TaskDialogResult.Help);
         }
 
-        private static TaskDialogStandardButton CreatePlaceholderButton(TaskDialogResult result)
+        private static TaskDialogButton CreatePlaceholderButton(TaskDialogResult result)
         {
             // TODO: Maybe bind the button so that the user
             // cannot change the properties, like it is the
             // case with the regular buttons added to the
             // collections.
-            return new TaskDialogStandardButton(result)
+            return new TaskDialogButton(result)
             {
                 Visible = false
             };
@@ -839,8 +849,8 @@ namespace System.Windows.Forms
         // Messages that can be sent to the dialog while it is being shown.
 
         /// <summary>
-        ///   Closes the shown task dialog with a
-        ///   <see cref="TaskDialogResult.Cancel"/> result.
+        ///   Closes the shown task dialog with
+        ///   <see cref="TaskDialogButton.Cancel"/> as resulting button.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -987,11 +997,21 @@ namespace System.Windows.Forms
             (IntPtr)radioButtonID,
             PARAM.FromBool(enable));
 
-        internal void ClickButton(int buttonID, bool checkWaitingForNavigation = true) => SendTaskDialogMessage(
-            ComCtl32.TDM.CLICK_BUTTON,
-            (IntPtr)buttonID,
-            IntPtr.Zero,
-            checkWaitingForNavigation);
+        internal void ClickButton(int buttonID, bool checkWaitingForNavigation = true)
+        {
+            // We need to clear the ignore flag in case we want to click a button while we
+            // are called within a TDN_BUTTON_CLICKED notification, because at that time
+            // it might still be true (if the event loop didn't continue yet). When the
+            // clicked handler is called while we send the message, it will set the flag
+            // again.
+            _ignoreButtonClickedNotifications = false;
+
+            SendTaskDialogMessage(
+                ComCtl32.TDM.CLICK_BUTTON,
+                (IntPtr)buttonID,
+                IntPtr.Zero,
+                checkWaitingForNavigation);
+        }
 
         internal void ClickRadioButton(int radioButtonID) => SendTaskDialogMessage(
             ComCtl32.TDM.CLICK_RADIO_BUTTON,
@@ -1231,7 +1251,7 @@ namespace System.Windows.Forms
                         TaskDialogButton? button = _boundPage.GetBoundButtonByID(buttonID);
 
                         bool applyButtonResult = true;
-                        if (button != null && !_suppressButtonClickedEvent)
+                        if (button is { } && !_suppressButtonClickedEvent)
                         {
                             // Note: When the event handler returned true but we received
                             // a TDN_NAVIGATED notification within the handler (e.g. by
@@ -1302,7 +1322,7 @@ namespace System.Windows.Forms
                                 // AllowCancel but not adding a "Cancel" button), we need
                                 // to create a new instance and save it, so that we can
                                 // return that instance after TaskDialogIndirect() returns.
-                                if (button == null)
+                                if (button is null)
                                 {
                                     button = CreatePlaceholderButton((TaskDialogResult)buttonID);
                                 }
@@ -1556,7 +1576,9 @@ namespace System.Windows.Forms
             page.Bind(
                 this,
                 out ComCtl32.TDF flags,
-                out TaskDialogButtons standardButtonFlags,
+                out ComCtl32.TDCBF standardButtonFlags,
+                out IEnumerable<(int buttonID, string text)> customButtonElements,
+                out IEnumerable<(int buttonID, string text)> radioButtonElements,
                 out ComCtl32.TASKDIALOGCONFIG.IconUnion mainIcon,
                 out ComCtl32.TASKDIALOGCONFIG.IconUnion footerIcon,
                 out int defaultButtonID,
@@ -1595,35 +1617,35 @@ namespace System.Windows.Forms
                     sizeToAllocate += SizeOfString(page.Footer?.Text);
 
                     // Buttons array
-                    if (page.CustomButtons.Count > 0)
+                    if (customButtonElements.Any())
                     {
                         // Note: Theoretically we would not need to align the pointer here
                         // since the packing of the structure is set to 1. Note that this
                         // can cause an unaligned write when assigning the structure (the
                         // same happens with TaskDialogConfig).
                         Align(ref sizeToAllocate);
-                        sizeToAllocate += sizeof(ComCtl32.TASKDIALOG_BUTTON) * page.CustomButtons.Count;
+                        sizeToAllocate += sizeof(ComCtl32.TASKDIALOG_BUTTON) * customButtonElements.Count();
 
                         // Strings in buttons array
                         Align(ref sizeToAllocate, sizeof(char));
-                        for (int i = 0; i < page.CustomButtons.Count; i++)
+                        foreach ((int buttonID, string text) in customButtonElements)
                         {
-                            sizeToAllocate += SizeOfString(page.CustomButtons[i].GetResultingText());
+                            sizeToAllocate += SizeOfString(text);
                         }
                     }
 
                     // Radio buttons array
-                    if (page.RadioButtons.Count > 0)
+                    if (radioButtonElements.Any())
                     {
                         // See comment above regarding alignment.
                         Align(ref sizeToAllocate);
-                        sizeToAllocate += sizeof(ComCtl32.TASKDIALOG_BUTTON) * page.RadioButtons.Count;
+                        sizeToAllocate += sizeof(ComCtl32.TASKDIALOG_BUTTON) * radioButtonElements.Count();
 
                         // Strings in radio buttons array
                         Align(ref sizeToAllocate, sizeof(char));
-                        for (int i = 0; i < page.RadioButtons.Count; i++)
+                        foreach ((int buttonID, string text) in radioButtonElements)
                         {
-                            sizeToAllocate += SizeOfString(page.RadioButtons[i].Text);
+                            sizeToAllocate += SizeOfString(text);
                         }
                     }
 
@@ -1672,44 +1694,52 @@ namespace System.Windows.Forms
                         };
 
                         // Buttons array
-                        if (page.CustomButtons.Count > 0)
+                        if (customButtonElements.Any())
                         {
+                            int customButtonCount = customButtonElements.Count();
+
                             Align(ref currentPtr);
                             var customButtonStructs = (ComCtl32.TASKDIALOG_BUTTON*)currentPtr;
                             taskDialogConfig.pButtons = customButtonStructs;
-                            taskDialogConfig.cButtons = (uint)page.CustomButtons.Count;
-                            currentPtr += sizeof(ComCtl32.TASKDIALOG_BUTTON) * page.CustomButtons.Count;
+                            taskDialogConfig.cButtons = (uint)customButtonCount;
+                            currentPtr += sizeof(ComCtl32.TASKDIALOG_BUTTON) * customButtonCount;
 
                             Align(ref currentPtr, sizeof(char));
-                            for (int i = 0; i < page.CustomButtons.Count; i++)
+                            int i = 0;
+                            foreach ((int buttonID, string text) in customButtonElements)
                             {
-                                TaskDialogCustomButton currentCustomButton = page.CustomButtons[i];
                                 customButtonStructs[i] = new ComCtl32.TASKDIALOG_BUTTON()
                                 {
-                                    nButtonID = currentCustomButton.ButtonID,
-                                    pszButtonText = MarshalString(currentCustomButton.GetResultingText())
+                                    nButtonID = buttonID,
+                                    pszButtonText = MarshalString(text)
                                 };
+
+                                i++;
                             }
                         }
 
                         // Radio buttons array
-                        if (page.RadioButtons.Count > 0)
+                        if (radioButtonElements.Any())
                         {
+                            int radioButtonCount = radioButtonElements.Count();
+
                             Align(ref currentPtr);
-                            var customRadioButtonStructs = (ComCtl32.TASKDIALOG_BUTTON*)currentPtr;
-                            taskDialogConfig.pRadioButtons = customRadioButtonStructs;
-                            taskDialogConfig.cRadioButtons = (uint)page.RadioButtons.Count;
-                            currentPtr += sizeof(ComCtl32.TASKDIALOG_BUTTON) * page.RadioButtons.Count;
+                            var radioButtonStructs = (ComCtl32.TASKDIALOG_BUTTON*)currentPtr;
+                            taskDialogConfig.pRadioButtons = radioButtonStructs;
+                            taskDialogConfig.cRadioButtons = (uint)radioButtonCount;
+                            currentPtr += sizeof(ComCtl32.TASKDIALOG_BUTTON) * radioButtonCount;
 
                             Align(ref currentPtr, sizeof(char));
-                            for (int i = 0; i < page.RadioButtons.Count; i++)
+                            int i = 0;
+                            foreach ((int buttonID, string text) in radioButtonElements)
                             {
-                                TaskDialogRadioButton currentCustomButton = page.RadioButtons[i];
-                                customRadioButtonStructs[i] = new ComCtl32.TASKDIALOG_BUTTON()
+                                radioButtonStructs[i] = new ComCtl32.TASKDIALOG_BUTTON()
                                 {
-                                    nButtonID = currentCustomButton.RadioButtonID,
-                                    pszButtonText = MarshalString(currentCustomButton.Text)
+                                    nButtonID = buttonID,
+                                    pszButtonText = MarshalString(text)
                                 };
+
+                                i++;
                             }
                         }
 
