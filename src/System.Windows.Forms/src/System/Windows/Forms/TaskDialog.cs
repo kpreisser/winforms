@@ -218,6 +218,12 @@ namespace System.Windows.Forms
         private bool _ignoreButtonClickedNotifications;
 
         /// <summary>
+        ///   Specifies if the current <see cref="ComCtl32.TDN.BUTTON_CLICKED"/> notification
+        ///   is caused by our own code sending a <see cref="ComCtl32.TDM.CLICK_BUTTON"/> message.
+        /// </summary>
+        private bool _buttonClickedProgrammatically;
+
+        /// <summary>
         ///   Specifies if the currently showing task dialog already received the
         ///   <see cref="ComCtl32.TDN.DESTROYED"/> notification.
         /// </summary>
@@ -999,18 +1005,24 @@ namespace System.Windows.Forms
 
         internal void ClickButton(int buttonID, bool checkWaitingForNavigation = true)
         {
-            // We need to clear the ignore flag in case we want to click a button while we
-            // are called within a TDN_BUTTON_CLICKED notification, because at that time
-            // it might still be true (if the event loop didn't continue yet). When the
-            // clicked handler is called while we send the message, it will set the flag
-            // again.
-            _ignoreButtonClickedNotifications = false;
-
-            SendTaskDialogMessage(
-                ComCtl32.TDM.CLICK_BUTTON,
-                (IntPtr)buttonID,
-                IntPtr.Zero,
-                checkWaitingForNavigation);
+            // Allow the handler of the TDN_BUTTON_CLICKED notification to detect that
+            // the notification is caused by ourselves sending a TDM_CLICK_BUTTON message.
+            _buttonClickedProgrammatically = true;
+            try
+            {
+                SendTaskDialogMessage(
+                    ComCtl32.TDM.CLICK_BUTTON,
+                    (IntPtr)buttonID,
+                    IntPtr.Zero,
+                    checkWaitingForNavigation);
+            }
+            finally
+            {
+                // In most cases the flag will already have been set to false in the
+                // TDN_BUTTON_CLICKED handler, but we do it again in case the notification
+                // wasn't handled for some reason or an exception was thrown.
+                _buttonClickedProgrammatically = false;
+            }
         }
 
         internal void ClickRadioButton(int radioButtonID) => SendTaskDialogMessage(
@@ -1226,25 +1238,36 @@ namespace System.Windows.Forms
                         break;
 
                     case ComCtl32.TDN.BUTTON_CLICKED:
-                        // Check if we should ignore this notification. If we process
-                        // it, we set a flag to ignore further TDN_BUTTON_CLICKED
-                        // notifications, and we post a message to the task dialog
-                        // that, when we process it, causes us to reset the flag.
-                        // This is used to work-around the access key bug in the
-                        // native task dialog - see the remarks of the
-                        // "ContinueButtonClickHandlingMessage" for more information.
-                        if (_ignoreButtonClickedNotifications)
+                        // Only do the special handling (ignoring the notification and
+                        // setting the _ignoreButtonClickedNotifications flag) if this
+                        // BUTTON_CLICKED notification is not caused by our own code.
+                        if (_buttonClickedProgrammatically)
                         {
-                            return HRESULT.S_FALSE;
+                            // Clear the flag as early as possible.
+                            _buttonClickedProgrammatically = false;
                         }
-
-                        // Post the message, and then set the flag to ignore further
-                        // notifications until we receive the posted message.
-                        if (User32.PostMessageW(
-                            hWnd,
-                            ContinueButtonClickHandlingMessage).IsTrue())
+                        else
                         {
-                            _ignoreButtonClickedNotifications = true;
+                            // Check if we should ignore this notification. If we process
+                            // it, we set a flag to ignore further TDN_BUTTON_CLICKED
+                            // notifications, and we post a message to the task dialog
+                            // that, when we process it, causes us to reset the flag.
+                            // This is used to work-around the access key bug in the
+                            // native task dialog - see the remarks of the
+                            // "ContinueButtonClickHandlingMessage" for more information.
+                            if (_ignoreButtonClickedNotifications)
+                            {
+                                return HRESULT.S_FALSE;
+                            }
+
+                            // Post the message, and then set the flag to ignore further
+                            // notifications until we receive the posted message.
+                            if (User32.PostMessageW(
+                                hWnd,
+                                ContinueButtonClickHandlingMessage).IsTrue())
+                            {
+                                _ignoreButtonClickedNotifications = true;
+                            }
                         }
 
                         int buttonID = PARAM.ToInt(wParam);
