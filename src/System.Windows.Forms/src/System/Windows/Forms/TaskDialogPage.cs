@@ -590,20 +590,18 @@ namespace System.Windows.Forms
             }
 
             // Check if the button is part of the custom buttons.
-            var button = null as TaskDialogButton;
             if (buttonID >= CustomButtonStartID)
             {
-                button = _boundCustomButtons![buttonID - CustomButtonStartID];
+                return _boundCustomButtons![buttonID - CustomButtonStartID];
             }
             else
             {
                 // Note: We deliberately return null instead of throwing when
                 // the common button ID is not part of the collection, because
                 // the caller might not know if such a button exists.
-                _boundStandardButtonsByID!.TryGetValue(buttonID, out button);
+                _boundStandardButtonsByID!.TryGetValue(buttonID, out TaskDialogButton? button);
+                return button;
             }
-
-            return button;
         }
 
         internal TaskDialogRadioButton? GetBoundRadioButtonByID(int buttonID)
@@ -677,9 +675,13 @@ namespace System.Windows.Forms
             foreach (TaskDialogButton button in _buttons)
             {
                 if (button is TaskDialogCommandLinkButton commandLink)
+                {
                     foundCommandLink = true;
+                }
                 else if (!button.IsStandardButton)
+                {
                     foundCustomButton = true;
+                }
             }
 
             if (foundCustomButton && foundCommandLink)
