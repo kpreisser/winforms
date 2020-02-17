@@ -32,7 +32,8 @@ namespace System.Windows.Forms
         ///   (100 is also used as first ID in MSDN examples for the task dialog).
         /// </para>
         /// </remarks>
-        private const int CustomButtonStartID = 100;
+        // Don't change this value, as it would affect the TaskDialogResult enum values.
+        internal const int CustomButtonStartID = 100;
 
         /// <summary>
         ///   The start ID for radio buttons.

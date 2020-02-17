@@ -9,7 +9,7 @@ namespace System.Windows.Forms
     /// <summary>
     /// Specifies identifiers to indicate the return value of a task dialog.
     /// </summary>
-    internal enum TaskDialogResult : int
+    public enum TaskDialogResult : int
     {
         /// <summary>
         ///
@@ -69,6 +69,36 @@ namespace System.Windows.Forms
         /// <summary>
         ///
         /// </summary>
-        Continue = User32.IDCONTINUE
+        Continue = User32.IDCONTINUE,
+
+        /// <summary>
+        ///
+        /// </summary>
+        Custom1 = TaskDialogPage.CustomButtonStartID,
+
+        /// <summary>
+        ///
+        /// </summary>
+        Custom2,
+
+        /// <summary>
+        ///
+        /// </summary>
+        Custom3,
+
+        /// <summary>
+        ///
+        /// </summary>
+        Custom4,
+
+        /// <summary>
+        ///
+        /// </summary>
+        Custom5,
+
+        /// <summary>
+        ///
+        /// </summary>
+        Custom6,
     }
 }
