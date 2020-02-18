@@ -22,6 +22,7 @@ namespace System.Windows.Forms
         private bool _visible = true;
 
         private readonly TaskDialogResult? _standardButtonResult;
+        private TaskDialogResult? _customButtonResult;
 
         private string? _text;
 
@@ -74,7 +75,7 @@ namespace System.Windows.Forms
         /// </param>
         // TODO
 #pragma warning disable RS0022 // Constructor make noninheritable base class inheritable
-        public TaskDialogButton(string? text, bool enabled = true, bool defaultButton = false, bool allowCloseDialog = true)
+        public TaskDialogButton(string? text, TaskDialogResult buttonResult, bool enabled = true, bool defaultButton = false, bool allowCloseDialog = true)
 #pragma warning restore RS0022 // Constructor make noninheritable base class inheritable
             : this()
         {
@@ -82,6 +83,8 @@ namespace System.Windows.Forms
             Enabled = enabled;
             DefaultButton = defaultButton;
             AllowCloseDialog = allowCloseDialog;
+
+            _customButtonResult = buttonResult;
         }
 
         internal TaskDialogButton(TaskDialogResult standardButtonResult)
@@ -348,7 +351,7 @@ namespace System.Windows.Forms
                 if (IsStandardButton)
                     return StandardButtonResult;
 
-                return (TaskDialogResult)_customButtonID;
+                return _customButtonResult ?? throw new InvalidOperationException();
             }
         }
 

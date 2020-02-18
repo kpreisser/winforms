@@ -23,6 +23,29 @@ namespace System.Windows.Forms
         ///   using the given text and, optionally, a description text.
         /// </summary>
         /// <param name="text">The text of the control.</param>
+        /// a separate line when the <see cref="TaskDialogButton"/>s of the task dialog are
+        /// shown as command links (see <see cref="DescriptionText"/>).</param>
+        /// <param name="defaultButton">A value that indicates whether this button is the default button
+        /// in the task dialog.
+        /// </param>
+        /// <param name="allowCloseDialog">A value that indicates whether the task dialog should close
+        ///   when this button is clicked.
+        /// </param>
+        public TaskDialogCommandLinkButton(
+            string? text,
+            TaskDialogResult dialogResult,
+            bool enabled = true,
+            bool defaultButton = false,
+            bool allowCloseDialog = true)
+            : this(text, null, dialogResult, enabled, defaultButton, allowCloseDialog)
+        {
+        }
+
+        /// <summary>
+        ///   Initializes a new instance of the <see cref="TaskDialogButton"/> class
+        ///   using the given text and, optionally, a description text.
+        /// </summary>
+        /// <param name="text">The text of the control.</param>
         /// <param name="descriptionText">An additional description text that will be displayed in
         /// a separate line when the <see cref="TaskDialogButton"/>s of the task dialog are
         /// shown as command links (see <see cref="DescriptionText"/>).</param>
@@ -34,11 +57,12 @@ namespace System.Windows.Forms
         /// </param>
         public TaskDialogCommandLinkButton(
             string? text,
-            string? descriptionText = null,
+            string? descriptionText,
+            TaskDialogResult dialogResult,
             bool enabled = true,
             bool defaultButton = false,
             bool allowCloseDialog = true)
-            : base(text, enabled, defaultButton, allowCloseDialog)
+            : base(text, dialogResult, enabled, defaultButton, allowCloseDialog)
         {
             _descriptionText = descriptionText;
         }

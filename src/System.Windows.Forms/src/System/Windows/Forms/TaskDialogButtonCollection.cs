@@ -40,9 +40,9 @@ namespace System.Windows.Forms
         ///   when this button is clicked.
         /// </param>
         /// <returns>The created <see cref="TaskDialogButton"/>.</returns>
-        public TaskDialogButton Add(string? text, bool enabled = true, bool defaultButton = false, bool allowCloseDialog = true)
+        public TaskDialogButton Add(string? text, TaskDialogResult dialogResult, bool enabled = true, bool defaultButton = false, bool allowCloseDialog = true)
         {
-            var button = new TaskDialogButton(text, enabled, defaultButton, allowCloseDialog);
+            var button = new TaskDialogButton(text, dialogResult, enabled, defaultButton, allowCloseDialog);
             Add(button);
 
             return button;
