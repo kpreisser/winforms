@@ -509,8 +509,9 @@ namespace System.Windows.Forms
         /// <param name="buttons">A bitwise combination of the enumeration values that specify the buttons to be shown
         /// in the task dialog.</param>
         /// <param name="icon">The icon to display in the main area of the task dialog.</param>
-        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
-        /// user to close the dialog.</returns>
+        /// <returns>
+        ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
+        /// </returns>
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static TaskDialogButton ShowDialog(
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
@@ -537,8 +538,9 @@ namespace System.Windows.Forms
         /// <param name="buttons">A bitwise combination of the enumeration values that specify the buttons to be shown
         /// in the task dialog.</param>
         /// <param name="icon">The icon to display in the main area of the task dialog.</param>
-        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
-        /// user to close the dialog.</returns>
+        /// <returns>
+        ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
+        /// </returns>
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static TaskDialogButton ShowDialog(
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
@@ -569,8 +571,9 @@ namespace System.Windows.Forms
         /// <param name="buttons">A bitwise combination of enumeration values that specify the buttons to be shown
         /// in the task dialog.</param>
         /// <param name="icon">The icon to display in the main area of the task dialog.</param>
-        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
-        /// user to close the dialog.</returns>
+        /// <returns>
+        ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
+        /// </returns>
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static TaskDialogButton ShowDialog(
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
@@ -647,8 +650,9 @@ namespace System.Windows.Forms
         ///   this method returns or the dialog is navigated to a different page.
         /// </para>
         /// </remarks>
-        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
-        /// user to close the dialog.</returns>
+        /// <returns>
+        ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
+        /// </returns>
         public TaskDialogButton ShowDialog() => ShowDialog(IntPtr.Zero);
 
         /// <summary>
@@ -661,8 +665,9 @@ namespace System.Windows.Forms
         /// </para>
         /// </remarks>
         /// <param name="owner">The owner window, or <see langword="null"/> to show a modeless dialog.</param>
-        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
-        /// user to close the dialog.</returns>
+        /// <returns>
+        ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
+        /// </returns>
         public TaskDialogButton ShowDialog(IWin32Window owner) => ShowDialog(
             owner?.Handle ?? throw new ArgumentNullException(nameof(owner)));
 
@@ -679,8 +684,9 @@ namespace System.Windows.Forms
         /// The handle of the owner window, or <see cref="IntPtr.Zero"/> to show a
         /// modeless dialog.
         /// </param>
-        /// <returns>The <see cref="TaskDialogButton"/> which was clicked by the
-        /// user to close the dialog.</returns>
+        /// <returns>
+        ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
+        /// </returns>
         public unsafe TaskDialogButton ShowDialog(IntPtr hwndOwner)
         {
             // Recursive Show() is not possible because a TaskDialog instance can only
