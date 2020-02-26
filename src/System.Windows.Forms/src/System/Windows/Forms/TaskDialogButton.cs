@@ -24,10 +24,6 @@ namespace System.Windows.Forms
         private readonly TaskDialogResult? _standardButtonResult;
 
         private string? _text;
-
-        // The customButtonID value will be kept when unbinding the button, so that
-        // we still can return the button number in the DialogResult getter after
-        // the button has already been unbound.
         private int _customButtonID;
 
         /// <summary>
@@ -337,28 +333,13 @@ namespace System.Windows.Forms
             }
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <value></value>
-        public TaskDialogResult DialogResult
-        {
-            get
-            {
-                if (IsStandardButton)
-                    return StandardButtonResult;
-
-                return (TaskDialogResult)_customButtonID;
-            }
-        }
-
         internal override bool IsCreatable => base.IsCreatable && _visible;
 
         internal bool IsStandardButton => _standardButtonResult != null;
 
         internal TaskDialogResult StandardButtonResult => _standardButtonResult ?? throw new InvalidOperationException();
 
-        internal int ButtonID => IsStandardButton ? (int)StandardButtonResult : _customButtonID;
+        internal int ButtonID => IsStandardButton ? (int)StandardButtonResult: _customButtonID;
 
         internal TaskDialogButtonCollection? Collection { get; set; }
 
@@ -476,6 +457,13 @@ namespace System.Windows.Forms
             {
                 ElevationRequired = _elevationRequired;
             }
+        }
+
+        private protected override void UnbindCore()
+        {
+            _customButtonID = 0;
+
+            base.UnbindCore();
         }
 
         private protected void OnClick(EventArgs e) => Click?.Invoke(this, e);
