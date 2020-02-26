@@ -742,9 +742,9 @@ namespace System.Windows.Forms
             radioButtons.BoundPage = this;
 
             // Sort the buttons.
-            _boundCustomButtons = _buttons.Where(e => !e.IsStandardButton).ToArray();
+            _boundCustomButtons = buttons.Where(e => !e.IsStandardButton).ToArray();
             _boundStandardButtonsByID = new Dictionary<int, TaskDialogButton>(
-                _buttons.Where(e => e.IsStandardButton)
+                buttons.Where(e => e.IsStandardButton)
                 .Select(e => new KeyValuePair<int, TaskDialogButton>(e.ButtonID, e)));
 
             // Assign IDs to the buttons based on their index.
