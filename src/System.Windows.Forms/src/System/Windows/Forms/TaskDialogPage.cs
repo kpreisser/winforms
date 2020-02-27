@@ -778,7 +778,10 @@ namespace System.Windows.Forms
                     throw new InvalidOperationException(SR.TaskDialogDefaultButtonMustExistInCollection);
                 }
 
-                defaultButtonID = DefaultButton.ButtonID;
+                if (DefaultButton.IsCreated)
+                {
+                    defaultButtonID = DefaultButton.ButtonID;
+                }
             }
             else if (DefaultButton == null && _buttons.Any())
             {
