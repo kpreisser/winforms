@@ -783,10 +783,6 @@ namespace System.Windows.Forms
                     defaultButtonID = DefaultButton.ButtonID;
                 }
             }
-            else if (DefaultButton == null && _buttons.Any())
-            {
-                defaultButtonID = _buttons.First().ButtonID;
-            }
 
             defaultRadioButtonID = 0;
             for (int i = 0; i < radioButtons.Count; i++)
