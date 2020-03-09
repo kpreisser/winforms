@@ -26,9 +26,6 @@ namespace System.Windows.Forms
         /// <param name="descriptionText">An additional description text that will be displayed in
         /// a separate line when the <see cref="TaskDialogButton"/>s of the task dialog are
         /// shown as command links (see <see cref="DescriptionText"/>).</param>
-        /// <param name="defaultButton">A value that indicates whether this button is the default button
-        /// in the task dialog.
-        /// </param>
         /// <param name="allowCloseDialog">A value that indicates whether the task dialog should close
         ///   when this button is clicked.
         /// </param>
@@ -36,9 +33,8 @@ namespace System.Windows.Forms
             string? text,
             string? descriptionText = null,
             bool enabled = true,
-            bool defaultButton = false,
             bool allowCloseDialog = true)
-            : base(text, enabled, defaultButton, allowCloseDialog)
+            : base(text, enabled, allowCloseDialog)
         {
             _descriptionText = descriptionText;
         }

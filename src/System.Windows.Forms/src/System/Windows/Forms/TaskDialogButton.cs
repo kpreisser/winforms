@@ -32,7 +32,6 @@ namespace System.Windows.Forms
     public class TaskDialogButton : TaskDialogControl
     {
         private bool _enabled = true;
-        private bool _defaultButton;
         private bool _elevationRequired;
         private bool _visible = true;
 
@@ -77,21 +76,17 @@ namespace System.Windows.Forms
         ///   using the given text and, optionally, a description text.
         /// </summary>
         /// <param name="text">The text of the control.</param>
-        /// <param name="defaultButton">A value that indicates whether this button is the default button
-        /// in the task dialog.
-        /// </param>
         /// <param name="allowCloseDialog">A value that indicates whether the task dialog should close
         ///   when this button is clicked.
         /// </param>
         // TODO
 #pragma warning disable RS0022 // Constructor make noninheritable base class inheritable
-        public TaskDialogButton(string? text, bool enabled = true, bool defaultButton = false, bool allowCloseDialog = true)
+        public TaskDialogButton(string? text, bool enabled = true, bool allowCloseDialog = true)
 #pragma warning restore RS0022 // Constructor make noninheritable base class inheritable
             : this()
         {
             _text = text;
             Enabled = enabled;
-            DefaultButton = defaultButton;
             AllowCloseDialog = allowCloseDialog;
         }
 
@@ -251,43 +246,6 @@ namespace System.Windows.Forms
                 }
 
                 _elevationRequired = value;
-            }
-        }
-
-        /// <summary>
-        ///   Gets or sets a value that indicates whether this button is the default button
-        ///   in the task dialog.
-        /// </summary>
-        /// <value>
-        ///   <see langword="true"/> if this button is the default button in the task dialog;
-        ///   otherwise, <see langword="false"/>. The default value is <see langword="false"/>.
-        /// </value>
-        /// <remarks>
-        /// <para>
-        ///   Only a single button in a task dialog can be set as the default button.
-        /// </para>
-        /// </remarks>
-        public bool DefaultButton
-        {
-            get => _defaultButton;
-
-            set
-            {
-                _defaultButton = value;
-
-                // If we are part of a collection, set the defaultButton value of
-                // all other buttons to false.
-                // Note that this does not handle buttons that are added later to
-                // the collection.
-                if (Collection == null || !value)
-                {
-                    return;
-                }
-
-                foreach (TaskDialogButton button in Collection)
-                {
-                    button._defaultButton = button == this;
-                }
             }
         }
 

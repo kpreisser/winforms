@@ -140,6 +140,14 @@ namespace System.Windows.Forms
         }
 
         /// <summary>
+        ///   Gets or sets the default button in the task dialog.
+        /// </summary>
+        /// <value>
+        ///   The default button in the task dialog.
+        /// </value>
+        public TaskDialogButton? DefaultButton { get; set; }
+
+        /// <summary>
         ///   Gets or sets the collection of radio buttons
         ///   to be shown in this page.
         /// </summary>
@@ -659,11 +667,6 @@ namespace System.Windows.Forms
                 throw new InvalidOperationException(SR.TaskDialogTooManyButtonsAdded);
             }
 
-            if (_buttons.Count(e => e.DefaultButton) > 1)
-            {
-                throw new InvalidOperationException(SR.TaskDialogOnlySingleButtonCanBeDefault);
-            }
-
             if (_radioButtons.Count(e => e.Checked) > 1)
             {
                 throw new InvalidOperationException(SR.TaskDialogOnlySingleRadioButtonCanBeChecked);
@@ -757,11 +760,6 @@ namespace System.Windows.Forms
                 if (standardButton.IsCreated)
                 {
                     buttonFlags |= standardButton.GetStandardButtonFlag();
-
-                    if (standardButton.DefaultButton && defaultButtonID == 0)
-                    {
-                        defaultButtonID = standardButton.ButtonID;
-                    }
                 }
             }
 
@@ -769,13 +767,19 @@ namespace System.Windows.Forms
             {
                 TaskDialogButton customButton = _boundCustomButtons[i];
                 flags |= customButton.Bind(this, CustomButtonStartID + i);
+            }
 
-                if (customButton.IsCreated)
+            if (DefaultButton != null)
+            {
+                // ensure the default button is part of the button collection
+                if (!buttons.Contains(DefaultButton))
                 {
-                    if (customButton.DefaultButton && defaultButtonID == 0)
-                    {
-                        defaultButtonID = customButton.ButtonID;
-                    }
+                    throw new InvalidOperationException(SR.TaskDialogDefaultButtonMustExistInCollection);
+                }
+
+                if (DefaultButton.IsCreated)
+                {
+                    defaultButtonID = DefaultButton.ButtonID;
                 }
             }
 

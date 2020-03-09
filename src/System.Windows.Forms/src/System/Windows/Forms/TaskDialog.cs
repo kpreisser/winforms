@@ -519,13 +519,15 @@ namespace System.Windows.Forms
             string? mainInstruction = null,
             string? caption = null,
             IEnumerable<TaskDialogButton>? buttons = null,
-            TaskDialogIcon? icon = null) => ShowDialog(
+            TaskDialogIcon? icon = null,
+            TaskDialogButton? defaultButton = null) => ShowDialog(
                 IntPtr.Zero,
                 text,
                 mainInstruction,
                 caption,
                 buttons,
-                icon);
+                icon,
+                defaultButton);
 
         /// <summary>
         ///   Displays a task dialog in front of the specified window and with the specified
@@ -549,13 +551,15 @@ namespace System.Windows.Forms
             string? mainInstruction = null,
             string? caption = null,
             IEnumerable<TaskDialogButton>? buttons = null,
-            TaskDialogIcon? icon = null) => ShowDialog(
+            TaskDialogIcon? icon = null,
+            TaskDialogButton? defaultButton = null) => ShowDialog(
                 owner?.Handle ?? throw new ArgumentNullException(nameof(owner)),
                 text,
                 mainInstruction,
                 caption,
                 buttons,
-                icon);
+                icon,
+                defaultButton);
 
         /// <summary>
         ///   Displays a task dialog in front of the specified window and with the specified
@@ -582,7 +586,8 @@ namespace System.Windows.Forms
             string? mainInstruction = null,
             string? caption = null,
             IEnumerable<TaskDialogButton>? buttons = null,
-            TaskDialogIcon? icon = null)
+            TaskDialogIcon? icon = null,
+            TaskDialogButton? defaultButton = null)
         {
             var page = new TaskDialogPage()
             {
@@ -596,6 +601,8 @@ namespace System.Windows.Forms
             {
                 page.Buttons.Add(button);
             }
+
+            page.DefaultButton = defaultButton;
 
             var dialog = new TaskDialog(page);
 
