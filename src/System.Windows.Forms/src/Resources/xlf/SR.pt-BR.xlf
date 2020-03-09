@@ -9186,6 +9186,11 @@ Rastreamento de pilha em que a operação ilegal ocorreu:
         <target state="new">Cannot set the {0} property from within the {1} event of one of the radio buttons of the current task dialog.</target>
         <note />
       </trans-unit>
+      <trans-unit id="TaskDialogCannotSetTextForStandardButton">
+        <source>Cannot set the text for a standard button.</source>
+        <target state="new">Cannot set the text for a standard button.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TaskDialogCannotUncheckRadioButtonWhileBound">
         <source>Cannot uncheck a radio button while it is bound to a task dialog.</source>
         <target state="new">Cannot uncheck a radio button while it is bound to a task dialog.</target>

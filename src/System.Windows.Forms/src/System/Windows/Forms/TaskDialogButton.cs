@@ -11,7 +11,22 @@ namespace System.Windows.Forms
     /// </summary>
     /// <remarks>
     /// <para>
-    /// (TODO: Explain standard and custom buttons)
+    ///   A button can either be a standard button (whose text is provided by the OS), or
+    ///   a custom button (or command link) where you can provide your own text.
+    /// </para>
+    /// <para>
+    ///   <see cref="TaskDialogButton"/> instances retrieved by static getters like <see cref="OK"/> are
+    ///   standard buttons. Their <see cref="Text"/> property cannot be set as the OS will provide the
+    ///   localized text for the buttons when showing them in the dialog.
+    /// </para>
+    /// <para>
+    ///   Button instances created with one of the constructors are custom buttons, which allow you to provide
+    ///   your own text as button label.
+    /// </para>
+    /// <para>
+    ///   Note: It's not possible to show both custom buttons and command links (<see cref="TaskDialogCommandLinkButton"/> instances)
+    ///   at the same time - it's only one or the other. In either case, you can combine them with
+    ///   standard buttons.
     /// </para>
     /// </remarks>
     public class TaskDialogButton : TaskDialogControl
@@ -50,7 +65,7 @@ namespace System.Windows.Forms
         /// <summary>
         ///   Initializes a new instance of the <see cref="TaskDialogButton"/> class.
         /// </summary>
-        // TODO
+        // TODO: Find a way to avoid making the class inheritable
 #pragma warning disable RS0022 // Constructor make noninheritable base class inheritable
         public TaskDialogButton()
 #pragma warning restore RS0022 // Constructor make noninheritable base class inheritable
@@ -304,17 +319,21 @@ namespace System.Windows.Forms
         }
 
         /// <summary>
-        ///   Gets or sets the text associated with this control if this is not a standard button.
+        ///   Gets or sets the text associated with this control.
         /// </summary>
         /// <value>
         ///   The text associated with this control. The default value is <see langword="null"/>.
         /// </value>
         /// <remarks>
         /// <para>
+        ///   You cannot set this property if this button is a standard button, as its text will be provided by the OS.
+        /// </para>
+        /// <para>
         ///   This property must not be <see langword="null"/> or an empty string when showing or navigating
         ///   the dialog; otherwise, the operation will fail.
         /// </para>
         /// </remarks>
+        /// <exception cref="InvalidOperationException">This button is a standard button, for which the text is provided by the OS.</exception>
         /// <exception cref="InvalidOperationException">This control is currently bound to a task dialog.</exception>
         public string? Text
         {
@@ -325,7 +344,7 @@ namespace System.Windows.Forms
                 // For standard buttons, the text is set by the constructor (but it's only
                 // the enum value name, the actual text is provided by the OS).
                 if (IsStandardButton)
-                    throw new InvalidOperationException(/* TODO */ "Cannot set the text for a standard button.");
+                    throw new InvalidOperationException(SR.TaskDialogCannotSetTextForStandardButton);
 
                 DenyIfBound();
 
