@@ -86,8 +86,6 @@ namespace System.Windows.Forms
         private static readonly ComCtl32.PFTASKDIALOGCALLBACK s_callbackProcDelegate =
             HandleTaskDialogNativeCallback;
 
-        private TaskDialogStartupLocation _startupLocation;
-        private bool _setToForeground;
         private TaskDialogPage? _currentPage;
         private TaskDialogPage? _boundPage;
 
@@ -219,8 +217,6 @@ namespace System.Windows.Forms
         /// </summary>
         private TaskDialog()
         {
-            // Set default properties.
-            _startupLocation = TaskDialogStartupLocation.CenterParent;
         }
 
         /// <summary>
@@ -228,76 +224,6 @@ namespace System.Windows.Forms
         ///   if the dialog is currently not being shown.
         /// </summary>
         public IntPtr Handle { get; private set; }
-
-        /// <summary>
-        ///   Gets or sets the position of the task dialog when it is shown.
-        /// </summary>
-        /// <value>
-        ///   The position of the task dialog when it is shown. The default value is
-        ///   <see cref="TaskDialogStartupLocation.CenterParent"/>.
-        /// </value>
-        public TaskDialogStartupLocation StartupLocation
-        {
-            get => _startupLocation;
-
-            set
-            {
-                if (!ClientUtils.IsEnumValid(
-                    value,
-                    (int)value,
-                    (int)TaskDialogStartupLocation.CenterScreen,
-                    (int)TaskDialogStartupLocation.CenterParent))
-                {
-                    throw new InvalidEnumArgumentException(
-                        nameof(value),
-                        (int)value,
-                        typeof(TaskDialogStartupLocation));
-                }
-
-                DenyIfBound();
-
-                _startupLocation = value;
-            }
-        }
-
-        /// <summary>
-        ///   Gets or sets a value that indicates whether the task dialog should set itself as
-        ///   foreground window when showing it.
-        /// </summary>
-        /// <value>
-        ///   <see langword="true"/> if the task dialog should set itself as foreground window
-        ///   when showing it; otherwise, <see langword="false"/>. The default value is <see langword="false"/>.
-        /// </value>
-        /// <remarks>
-        /// <para>
-        ///   When setting this property to <see langword="true"/> and then showing the dialog, it
-        ///   causes the dialog to set itself as foreground window. This means that
-        ///   if currently none of the application's windows has focus, the task dialog
-        ///   tries to "steal" focus (which can result in the task dialog window being
-        ///   activated, or the taskbar button for the window flashing orange). However,
-        ///   if the application already has focus, the task dialog window will be
-        ///   activated in either case.
-        /// </para>
-        /// <para>
-        ///   Note: A value of <see langword="false"/> only has an effect on Windows 8/Windows Server 2012
-        ///   and higher. On previous versions of Windows, the task dialog will always behave as
-        ///   if this property was set to <see langword="true"/>.
-        /// </para>
-        /// </remarks>
-        public bool SetToForeground
-        {
-            // Note: The default value of this property is 'false' which means the
-            // TDF_NO_SET_FOREGROUND flag is specified by default (which is also the default
-            // behavior of the MessageBox).
-            get => _setToForeground;
-
-            set
-            {
-                DenyIfBound();
-
-                _setToForeground = value;
-            }
-        }
 
         /// <summary>
         ///   Gets a value that indicates whether <see cref="ShowDialog(IntPtr, TaskDialogPage)"/> is
@@ -390,11 +316,32 @@ namespace System.Windows.Forms
         /// <param name="page">
         ///   The page instance that contains the contents which this task dialog will display.
         /// </param>
+        /// <param name="startupLocation">
+        ///   Gets or sets the position of the task dialog when it is shown.
+        /// </param>
+        /// <param name="setToForeground">
+        ///   Gets or sets a value that indicates whether the task dialog should set itself as
+        ///   foreground window when showing it.
+        /// </param>
         /// <remarks>
-        /// <para>
-        ///   Showing the dialog will bind the <paramref name="page"/> and its controls until
-        ///   this method returns or the dialog is navigated to a different page.
-        /// </para>
+        ///   <para>
+        ///     Showing the dialog will bind the <paramref name="page"/> and its controls until
+        ///     this method returns or the dialog is navigated to a different page.
+        ///   </para>
+        ///   <para>
+        ///     Setting <paramref name="setToForeground"/> to <see langword="true"/>
+        ///     will cause the dialog to set itself as foreground window. This means that
+        ///     if currently none of the application's windows has focus, the task dialog
+        ///     tries to "steal" focus (which can result in the task dialog window being
+        ///     activated, or the taskbar button for the window flashing orange). However,
+        ///     if the application already has focus, the task dialog window will be
+        ///     activated in either case.
+        ///   </para>
+        ///   <para>
+        ///     Note: A value of <see langword="false"/> only has an effect on Windows 8/Windows Server 2012
+        ///     and higher. On previous versions of Windows, the task dialog will always behave as
+        ///     if <paramref name="setToForeground"/> was set to <see langword="true"/>.
+        ///   </para>
         /// </remarks>
         /// <returns>
         ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
@@ -402,8 +349,13 @@ namespace System.Windows.Forms
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="page"/> is <see langword="null"/>.
         /// </exception>
-        public static TaskDialogButton ShowDialog(TaskDialogPage page)
-            => ShowDialog(IntPtr.Zero, page ?? throw new ArgumentNullException(nameof(page)));
+        public static TaskDialogButton ShowDialog(TaskDialogPage page,
+                                                  TaskDialogStartupLocation startupLocation = TaskDialogStartupLocation.CenterParent,
+                                                  bool setToForeground = true)
+            => ShowDialog(IntPtr.Zero,
+                          page ?? throw new ArgumentNullException(nameof(page)),
+                          startupLocation,
+                          setToForeground);
 
         /// <summary>
         ///   Shows the task dialog with the specified owner.
@@ -411,13 +363,34 @@ namespace System.Windows.Forms
         /// <param name="page">
         ///   The page instance that contains the contents which this task dialog will display.
         /// </param>
-        /// <remarks>
-        /// <para>
-        ///   Showing the dialog will bind the <paramref name="page"/> and its controls until
-        ///   this method returns or the dialog is navigated to a different page.
-        /// </para>
-        /// </remarks>
         /// <param name="owner">The owner window, or <see langword="null"/> to show a modeless dialog.</param>
+        /// <param name="startupLocation">
+        ///   Gets or sets the position of the task dialog when it is shown.
+        /// </param>
+        /// <param name="setToForeground">
+        ///   Gets or sets a value that indicates whether the task dialog should set itself as
+        ///   foreground window when showing it.
+        /// </param>
+        /// <remarks>
+        ///   <para>
+        ///     Showing the dialog will bind the <paramref name="page"/> and its controls until
+        ///     this method returns or the dialog is navigated to a different page.
+        ///   </para>
+        ///   <para>
+        ///     Setting <paramref name="setToForeground"/> to <see langword="true"/>
+        ///     will cause the dialog to set itself as foreground window. This means that
+        ///     if currently none of the application's windows has focus, the task dialog
+        ///     tries to "steal" focus (which can result in the task dialog window being
+        ///     activated, or the taskbar button for the window flashing orange). However,
+        ///     if the application already has focus, the task dialog window will be
+        ///     activated in either case.
+        ///   </para>
+        ///   <para>
+        ///     Note: A value of <see langword="false"/> only has an effect on Windows 8/Windows Server 2012
+        ///     and higher. On previous versions of Windows, the task dialog will always behave as
+        ///     if <paramref name="setToForeground"/> was set to <see langword="true"/>.
+        ///   </para>
+        /// </remarks>
         /// <returns>
         ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
         /// </returns>
@@ -426,9 +399,13 @@ namespace System.Windows.Forms
         ///   - or -
         ///   <paramref name="page"/> is <see langword="null"/>.
         /// </exception>
-        public static TaskDialogButton ShowDialog(IWin32Window owner, TaskDialogPage page)
+        public static TaskDialogButton ShowDialog(IWin32Window owner, TaskDialogPage page,
+                                                  TaskDialogStartupLocation startupLocation = TaskDialogStartupLocation.CenterParent,
+                                                  bool setToForeground = true)
             => ShowDialog(owner?.Handle ?? throw new ArgumentNullException(nameof(owner)),
-                          page ?? throw new ArgumentNullException(nameof(page)));
+                          page ?? throw new ArgumentNullException(nameof(page)),
+                          startupLocation,
+                          setToForeground);
 
         /// <summary>
         ///   Shows the task dialog with the specified owner.
@@ -436,16 +413,37 @@ namespace System.Windows.Forms
         /// <param name="page">
         ///   The page instance that contains the contents which this task dialog will display.
         /// </param>
-        /// <remarks>
-        /// <para>
-        ///   Showing the dialog will bind the <paramref name="page"/> and its controls until
-        ///   this method returns or the dialog is navigated to a different page.
-        /// </para>
-        /// </remarks>
         /// <param name="hwndOwner">
-        /// The handle of the owner window, or <see cref="IntPtr.Zero"/> to show a
-        /// modeless dialog.
+        ///   The handle of the owner window, or <see cref="IntPtr.Zero"/> to show a
+        ///   modeless dialog.
         /// </param>
+        /// <param name="startupLocation">
+        ///   Gets or sets the position of the task dialog when it is shown.
+        /// </param>
+        /// <param name="setToForeground">
+        ///   Gets or sets a value that indicates whether the task dialog should set itself as
+        ///   foreground window when showing it.
+        /// </param>
+        /// <remarks>
+        ///   <para>
+        ///     Showing the dialog will bind the <paramref name="page"/> and its controls until
+        ///     this method returns or the dialog is navigated to a different page.
+        ///   </para>
+        ///   <para>
+        ///     Setting <paramref name="setToForeground"/> to <see langword="true"/>
+        ///     will cause the dialog to set itself as foreground window. This means that
+        ///     if currently none of the application's windows has focus, the task dialog
+        ///     tries to "steal" focus (which can result in the task dialog window being
+        ///     activated, or the taskbar button for the window flashing orange). However,
+        ///     if the application already has focus, the task dialog window will be
+        ///     activated in either case.
+        ///   </para>
+        ///   <para>
+        ///     Note: A value of <see langword="false"/> only has an effect on Windows 8/Windows Server 2012
+        ///     and higher. On previous versions of Windows, the task dialog will always behave as
+        ///     if <paramref name="setToForeground"/> was set to <see langword="true"/>.
+        ///   </para>
+        /// </remarks>
         /// <returns>
         ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
         /// </returns>
@@ -454,7 +452,9 @@ namespace System.Windows.Forms
         ///   - or -
         ///   <paramref name="page"/> is <see langword="null"/>.
         /// </exception>
-        public static unsafe TaskDialogButton ShowDialog(IntPtr hwndOwner, TaskDialogPage page)
+        public static unsafe TaskDialogButton ShowDialog(IntPtr hwndOwner, TaskDialogPage page,
+                                                  TaskDialogStartupLocation startupLocation = TaskDialogStartupLocation.CenterParent,
+                                                  bool setToForeground = true)
         {
             if (page == null)
             {
@@ -462,7 +462,7 @@ namespace System.Windows.Forms
             }
 
             TaskDialog dialog = new TaskDialog();
-            return dialog.ShowDialogInternal(hwndOwner, page);
+            return dialog.ShowDialogInternal(hwndOwner, page, startupLocation, setToForeground);
         }
 
         /// <summary>
@@ -477,7 +477,10 @@ namespace System.Windows.Forms
         /// <returns>
         ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
         /// </returns>
-        private unsafe TaskDialogButton ShowDialogInternal(IntPtr hwndOwner, TaskDialogPage page)
+        private unsafe TaskDialogButton ShowDialogInternal(IntPtr hwndOwner,
+                                                  TaskDialogPage page,
+                                                  TaskDialogStartupLocation startupLocation,
+                                                  bool setToForeground)
         {
             // Recursive Show() is not possible because a TaskDialog instance can only
             // represent a single native dialog.
@@ -499,8 +502,8 @@ namespace System.Windows.Forms
                 BindPageAndAllocateConfig(
                     page,
                     hwndOwner,
-                    _startupLocation,
-                    _setToForeground,
+                    startupLocation,
+                    setToForeground,
                     out IntPtr ptrToFree,
                     out ComCtl32.TASKDIALOGCONFIG* ptrTaskDialogConfig);
 
