@@ -50,7 +50,7 @@ namespace System.Windows.Forms
         ShieldWarningYellowBar = ushort.MaxValue - 5,
 
         /// <summary>
-        ///   The task dialog contains an icon consisting of white "x"" in a red shield and shows a red bar around the icon.
+        ///   The task dialog contains an icon consisting of white "x" in a red shield and shows a red bar around the icon.
         /// </summary>
         ShieldErrorRedBar = ushort.MaxValue - 6,
 
