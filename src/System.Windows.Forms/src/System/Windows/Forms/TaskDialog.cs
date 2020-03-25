@@ -160,7 +160,7 @@ namespace System.Windows.Forms
         ///   This will be set the first time the
         ///   <see cref="ComCtl32.TDN.BUTTON_CLICKED"/> handler returns
         ///   <see cref="HRESULT.S_OK"/> to cache the button instance,
-        ///   so that <see cref="ShowDialog(IntPtr, TaskDialogPage)"/> can then return it.
+        ///   so that <see cref="ShowDialog(IntPtr, TaskDialogPage, TaskDialogStartupLocation, bool)"/> can then return it.
         /// </para>
         /// <para>
         ///   Additionally, this is used to check if there was already a
@@ -226,7 +226,7 @@ namespace System.Windows.Forms
         public IntPtr Handle { get; private set; }
 
         /// <summary>
-        ///   Gets a value that indicates whether <see cref="ShowDialog(IntPtr, TaskDialogPage)"/> is
+        ///   Gets a value that indicates whether <see cref="ShowDialog(IntPtr, TaskDialogPage, TaskDialogStartupLocation, bool)"/> is
         ///   currently being called.
         /// </summary>
         internal bool IsShown
@@ -310,6 +310,7 @@ namespace System.Windows.Forms
             };
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         ///   Shows the task dialog.
         /// </summary>
@@ -464,6 +465,7 @@ namespace System.Windows.Forms
             TaskDialog dialog = new TaskDialog();
             return dialog.ShowDialogInternal(hwndOwner, page, startupLocation, setToForeground);
         }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         ///   Shows the task dialog with the specified owner.
