@@ -239,7 +239,6 @@ namespace System.Windows.Forms
         public TaskDialogStartupLocation StartupLocation
         {
             get => _startupLocation;
-
             set
             {
                 if (!ClientUtils.IsEnumValid(
@@ -290,7 +289,6 @@ namespace System.Windows.Forms
             // TDF_NO_SET_FOREGROUND flag is specified by default (which is also the default
             // behavior of the MessageBox).
             get => _setToForeground;
-
             set
             {
                 DenyIfBound();
@@ -450,8 +448,6 @@ namespace System.Windows.Forms
         ///   The <see cref="TaskDialogButton"/> which was clicked by the user to close the dialog.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="hwndOwner"/> is <see langword="null"/>
-        ///   - or -
         ///   <paramref name="page"/> is <see langword="null"/>.
         /// </exception>
         public static unsafe TaskDialogButton ShowDialog(IntPtr hwndOwner, TaskDialogPage page)

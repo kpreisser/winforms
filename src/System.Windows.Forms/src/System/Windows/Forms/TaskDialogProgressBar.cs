@@ -63,7 +63,6 @@ namespace System.Windows.Forms
         public TaskDialogProgressBarState State
         {
             get => _state;
-
             set
             {
                 if (!ClientUtils.IsEnumValid(
@@ -124,7 +123,6 @@ namespace System.Windows.Forms
         public int Minimum
         {
             get => _minimum;
-
             set
             {
                 if (value < 0 || value > ushort.MaxValue)
@@ -163,7 +161,6 @@ namespace System.Windows.Forms
         public int Maximum
         {
             get => _maximum;
-
             set
             {
                 if (value < 0 || value > ushort.MaxValue)
@@ -202,7 +199,6 @@ namespace System.Windows.Forms
         public int Value
         {
             get => _value;
-
             set
             {
                 if (value < 0 || value > ushort.MaxValue)
@@ -256,7 +252,6 @@ namespace System.Windows.Forms
         public int MarqueeSpeed
         {
             get => _marqueeSpeed;
-
             set
             {
                 DenyIfBoundAndNotCreated();
