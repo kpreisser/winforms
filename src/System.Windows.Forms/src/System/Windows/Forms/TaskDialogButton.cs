@@ -337,6 +337,7 @@ namespace System.Windows.Forms
             BoundPage!.BoundDialog!.ClickButton(ButtonID);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object? obj)
         {
             // For standard buttons, we consider them to be equal if they have the same
@@ -349,6 +350,7 @@ namespace System.Windows.Forms
             return base.Equals(obj);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             if (IsStandardButton)
