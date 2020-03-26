@@ -47,7 +47,7 @@ namespace System.Windows.Forms
 
         /// <inheritdoc/>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="item"/> is <see langword="null"/>
+        ///   <paramref name="item"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///   <paramref name="item"/> has already been added to the collection.
@@ -88,7 +88,7 @@ namespace System.Windows.Forms
 
         /// <inheritdoc/>
         /// <exception cref="ArgumentNullException">
-        ///   <paramref name="item"/> is <see langword="null"/>
+        ///   <paramref name="item"/> is <see langword="null"/>.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///   <paramref name="item"/> has already been added to the collection.

@@ -61,8 +61,7 @@ namespace System.Windows.Forms
         ///   </para>
         /// </remarks>
         /// <exception cref="InvalidOperationException">
-        ///   Attempt to hide the progress bar by setting the value 
-        ///   to <c>TaskDialogProgressBarState.None</c> while the dialog is shown.
+        ///   The value is <c>TaskDialogProgressBarState.None</c> while the dialog is displayed.
         /// </exception>
         public TaskDialogProgressBarState State
         {
